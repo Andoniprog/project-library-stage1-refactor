@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2026. Arquitectura de Sistemas, DISC, UCN, Antofagasta.
+ */
 package cl.ucn.disc.arqsist.library;
 
 import cl.ucn.disc.arqsist.library.dao.BookDao;
@@ -13,11 +16,21 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+/**
+ * Checks that a failed checkout leaves no partial write.
+ */
 class TransactionBugTest {
 
+    /** Book DAO used to inspect the inventory. */
     private BookDao bookDao;
+    /** Service under test. */
     private MemberService memberService;
 
+    /**
+     * Creates an in-memory database and the services.
+     *
+     * @throws Exception if the setup fails.
+     */
     @BeforeEach
     void setUp() throws Exception {
         Database db = new Database("jdbc:sqlite::memory:");
@@ -27,6 +40,11 @@ class TransactionBugTest {
         memberService = new MemberService(memberDao, bookDao, loanDao);
     }
 
+    /**
+     * A checkout with a bad member must not change availableCopies.
+     *
+     * @throws Exception if the DAO fails.
+     */
     @Test
     void checkoutLeavesNoPartialStateOnFailure() throws Exception {
         Book book = new Book("Clean Code", "Robert C. Martin", "9780132350884", 2);

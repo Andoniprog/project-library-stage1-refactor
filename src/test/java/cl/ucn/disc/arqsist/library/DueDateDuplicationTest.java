@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2026. Arquitectura de Sistemas, DISC, UCN, Antofagasta.
+ */
 package cl.ucn.disc.arqsist.library;
 
 import cl.ucn.disc.arqsist.library.dao.BookDao;
@@ -16,13 +19,25 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * Checks that checkout and fulfill give the same loan period.
+ */
 class DueDateDuplicationTest {
 
+    /** Service under test for checkout. */
     private MemberService memberService;
+    /** Service under test for fulfill. */
     private ReservationService reservationService;
+    /** Book used by the test. */
     private Book book;
+    /** Member used by the test. */
     private Member member;
 
+    /**
+     * Creates an in-memory database and the services.
+     *
+     * @throws Exception if the setup fails.
+     */
     @BeforeEach
     void setUp() throws Exception {
         Database db = new Database("jdbc:sqlite::memory:");
@@ -40,6 +55,11 @@ class DueDateDuplicationTest {
         memberDao.create(member);
     }
 
+    /**
+     * Both loans must have the same due date.
+     *
+     * @throws Exception if a service fails.
+     */
     @Test
     void checkoutAndFulfillUseTheSameLoanPeriod() throws Exception {
         Loan fromCheckout = memberService.checkout(member.getId(), book.getId());
