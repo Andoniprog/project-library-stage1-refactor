@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2026. Arquitectura de Sistemas, DISC, UCN, Antofagasta.
+ */
 package cl.ucn.disc.arqsist.library.service;
 
 import cl.ucn.disc.arqsist.library.dao.BookDao;
@@ -10,22 +13,45 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+/**
+ * Loan use cases: listing, returning and overdue detection.
+ */
 public final class LoanService {
 
-    public static final int DUE_DAYS = 21;
-
+    /** Persistence of loans. */
     private final LoanDao loanDao;
+
+    /** Persistence of books. */
     private final BookDao bookDao;
 
+    /**
+     * Creates the service.
+     *
+     * @param loanDao the loan DAO.
+     * @param bookDao the book DAO.
+     */
     public LoanService(LoanDao loanDao, BookDao bookDao) {
         this.loanDao = loanDao;
         this.bookDao = bookDao;
     }
 
+    /**
+     * Lists all loans.
+     *
+     * @return every loan.
+     * @throws SQLException if the database fails.
+     */
     public List<Loan> findAll() throws SQLException {
         return loanDao.findAll();
     }
 
+    /**
+     * Returns a loan and charges the fee when it is late.
+     *
+     * @param loanId the loan identifier.
+     * @return the loan, or null if it does not exist or was already returned.
+     * @throws SQLException if the database fails.
+     */
     public Loan returnLoan(int loanId) throws SQLException {
         Loan loan = loanDao.findById(loanId);
         if (loan == null || loan.isReturned()) {
@@ -39,7 +65,7 @@ public final class LoanService {
         LocalDate today = LocalDate.now();
         if (today.isAfter(due)) {
             long daysOverdue = ChronoUnit.DAYS.between(due, today);
-            loan.setOverdueFee(daysOverdue * 1.0);
+            loan.setOverdueFee(daysOverdue * LoanPolicy.FEE_PER_DAY);
         }
 
         loanDao.update(loan);
@@ -51,6 +77,12 @@ public final class LoanService {
         return loan;
     }
 
+    /**
+     * Lists the open loans that are past their due date.
+     *
+     * @return the overdue loans.
+     * @throws SQLException if the database fails.
+     */
     public List<Loan> overdueLoans() throws SQLException {
         LocalDate today = LocalDate.now();
         return loanDao.findAll().stream()
